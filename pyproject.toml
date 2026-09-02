@@ -3,3 +3,20 @@ name = "rl-robot-arm"
 version = "0.1.0"
 description = "Reinforcement-Learning Robotic Arm"
 requires-python = ">=3.10"
+dependencies = [
+    "gymnasium>=1.0,<2",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+rl-robot-arm = "rl_robot_arm.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

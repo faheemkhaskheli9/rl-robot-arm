@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "RL Robot Arm: rollout (p-control)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rl_robot_arm",
+      "args": ["--episodes", "5", "--policy", "p-control"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}/src" }
+    },
+    {
+      "name": "RL Robot Arm: rollout (random, 3 links)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "rl_robot_arm",
+      "args": ["--episodes", "5", "--policy", "random", "--links", "3"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}/src" }
+    },
+    {
+      "name": "RL Robot Arm: pytest",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/", "-v"],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

@@ -4,7 +4,7 @@
 > This is an original, from-scratch build. It is not affiliated with, and does not
 > contain any code, prompts, data, or business logic from, any employer or client.
 
-![status](https://img.shields.io/badge/status-planned-lightgrey)
+![status](https://img.shields.io/badge/status-in%20progress-yellow)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)
 
@@ -82,11 +82,23 @@ No proprietary, employer-owned, or client-identifiable data is used in this proj
 
 ## 9. Training / Execution
 
-Document the commands used to run training, ingestion, or the main pipeline, e.g.:
+Phase 1 — simulated planar-arm environment (implemented):
 
 ```bash
-python -m src.main --config configs/default.yaml
+pip install -r requirements.txt
+export PYTHONPATH=src            # or: pip install -e .
+
+# Roll out a crude Jacobian-transpose controller in the env:
+python -m rl_robot_arm --episodes 5 --policy p-control
+
+# Random policy, 3-link arm:
+python -m rl_robot_arm --episodes 5 --policy random --links 3
 ```
+
+The environment is `PlanarArmReach-v0` (Gymnasium API, headless, CPU-only,
+deterministic given a seed). Observation and action spaces are documented in
+[`docs/architecture.md`](docs/architecture.md#phase-1-environment-planararmreach-v0).
+DDPG + HER training lands in Phases 2–3.
 
 ## 10. Evaluation
 
@@ -136,4 +148,4 @@ business logic. All code, data, and documentation here are original or built on
 publicly available datasets and open-source tools.
 
 ---
-_Last updated: 2026-08-18_
+_Last updated: 2026-09-02_
