@@ -64,3 +64,24 @@ For the default 2-link arm this is a 12-vector.
 ### `info` dict
 
 `distance`, `is_success`, `ee_pos`, `target`, `joint_angles`.
+
+## Phase 2 agent: DDPG (`src/rl_robot_arm/ddpg/`)
+
+- `ddpg.agent` — `Actor` (MLP, tanh output matching the `[-1, 1]` action
+  space), `Critic` (MLP over `[obs; action] -> Q`), and `DDPGAgent`, which
+  owns both plus a frozen (`requires_grad=False`) target copy of each,
+  updated via Polyak/soft update (`target <- tau*source + (1-tau)*target`)
+  after every gradient step rather than a hard periodic copy.
+- `ddpg.replay_buffer` — a fixed-capacity ring buffer of transitions;
+  sampling is uniform-random with replacement.
+- `ddpg.train.train_ddpg` — the training loop: acts with Gaussian
+  exploration noise (random actions during `warmup_steps` so the buffer
+  isn't filled entirely by the untrained actor's narrow policy), stores
+  transitions, and once the buffer holds a full batch takes one gradient
+  step per env step. Logs every episode's return/success/step-count
+  (`TrainingLog`) and atomically checkpoints (`configs/ddpg_default.yaml`'s
+  companion checkpoint dir) whenever an episode's return beats every prior
+  one — the *best*-seen agent, not just the latest.
+- Hyperparameters live in `configs/ddpg_default.yaml`, loaded via
+  `ddpg.agent.load_ddpg_config` (same explicit-path-must-exist contract as
+  `rewards.load_reward_config`).
