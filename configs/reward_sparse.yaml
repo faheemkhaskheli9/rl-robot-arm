@@ -1,0 +1,5 @@
+# Sparse reward: only +/- signal on success, no shaping. Harder to learn
+# from -- the Phase 4 reward-design comparison is dense vs. this.
+mode: sparse
+success_reward: 1.0
+failure_reward: 0.0

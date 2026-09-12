@@ -13,9 +13,12 @@ action : Box(-1, 1, shape=(n_links,)), float32
 observation : Box(shape=(3 * n_links + 6,)), float32
     ``[cos(q), sin(q), q_dot, ee_xy, target_xy, (target - ee)_xy]``.
 
-Reward (Phase 1 default -- refined in issue #3)
-    Dense: ``-distance(ee, target) - control_cost * ||action||^2``.
-    ``+success_bonus`` on the step the target is reached.
+Reward
+    Configurable via ``reward_mode``/``reward_config`` -- see
+    :mod:`rl_robot_arm.rewards`. Dense (default): ``-distance(ee, target) -
+    control_cost * ||action||^2``, ``+success_bonus`` on the step the target
+    is reached. Sparse: ``+success_reward`` only on the step the target is
+    reached, ``failure_reward`` otherwise.
 
 Episode end
     terminated : end-effector within ``tolerance`` of the target.
@@ -30,6 +33,8 @@ from typing import Any
 import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
+
+from ..rewards import RewardConfig, compute_reward
 
 __all__ = ["PlanarArmReachEnv"]
 
@@ -48,6 +53,8 @@ class PlanarArmReachEnv(gym.Env):
         success_bonus: float = 1.0,
         target_radius_range: tuple[float, float] = (0.2, 0.9),
         render_mode: str | None = None,
+        reward_mode: str = "dense",
+        reward_config: RewardConfig | None = None,
     ) -> None:
         super().__init__()
         if n_links < 1:
@@ -77,6 +84,9 @@ class PlanarArmReachEnv(gym.Env):
         self.success_bonus = float(success_bonus)
         self.target_radius_range = (float(low), float(high))
         self.render_mode = render_mode
+        self.reward_config = reward_config or RewardConfig(
+            mode=reward_mode, control_cost=self.control_cost, success_bonus=self.success_bonus
+        )
 
         self.action_space = spaces.Box(-1.0, 1.0, shape=(n_links,), dtype=np.float32)
         obs_dim = 3 * n_links + 6
@@ -164,9 +174,9 @@ class PlanarArmReachEnv(gym.Env):
 
         distance = self._distance()
         terminated = distance <= self.tolerance
-        reward = -distance - self.control_cost * float(np.sum(action**2))
-        if terminated:
-            reward += self.success_bonus
+        reward = compute_reward(
+            distance=distance, action=action, terminated=terminated, config=self.reward_config
+        )
 
         return self._get_obs(), reward, terminated, False, self._get_info()
 

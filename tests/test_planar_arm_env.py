@@ -112,3 +112,18 @@ def test_rgb_array_render_returns_image():
     assert frame is not None
     assert frame.shape == (128, 128, 3)
     assert frame.dtype == np.uint8
+
+
+def test_reward_mode_is_selectable_and_defaults_to_dense():
+    dense_env = PlanarArmReachEnv(n_links=2)
+    assert dense_env.reward_config.mode == "dense"
+
+    sparse_env = PlanarArmReachEnv(n_links=2, reward_mode="sparse")
+    assert sparse_env.reward_config.mode == "sparse"
+
+    sparse_env.reset(seed=0)
+    # A non-terminating step under sparse mode gets exactly the configured
+    # failure reward (0.0 by default), unlike dense mode's distance penalty.
+    _, reward, terminated, _, _ = sparse_env.step(np.zeros(2, dtype=np.float32))
+    if not terminated:
+        assert reward == 0.0

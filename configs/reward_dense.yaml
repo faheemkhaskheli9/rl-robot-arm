@@ -1,0 +1,5 @@
+# Dense (shaped) reward: distance penalty every step, so the agent gets a
+# gradient to follow even far from the target.
+mode: dense
+control_cost: 0.01
+success_bonus: 1.0

@@ -3,6 +3,7 @@
 # Phase 1 (simulated planar-arm environment) needs only:
 gymnasium>=1.0,<2
 numpy>=1.24
+pyyaml>=6.0,<7   # loads configs/reward_*.yaml presets
 
 # Phase 2+ (DDPG/HER agent) will add torch. A physics-engine backend
 # (PyBullet / MuJoCo) is optional and not required for the kinematic env.
