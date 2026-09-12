@@ -7,13 +7,13 @@
 from __future__ import annotations
 
 import argparse
-import statistics
 from collections.abc import Sequence
 
 import gymnasium as gym
 
 from . import register_envs
 from .policies import POLICIES
+from .rollout import evaluate_policy
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,30 +42,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     policy = POLICIES[args.policy]
 
-    returns: list[float] = []
-    successes = 0
-    for episode in range(args.episodes):
-        obs, info = env.reset(seed=args.seed + episode)
-        total = 0.0
-        done = False
-        steps = 0
-        while not done:
-            action = policy(env.unwrapped, obs)
-            obs, reward, terminated, truncated, info = env.step(action)
-            total += reward
-            steps += 1
-            done = terminated or truncated
-        successes += int(info["is_success"])
-        returns.append(total)
+    stats = evaluate_policy(env, policy, episodes=args.episodes, seed=args.seed)
+    for i, ep in enumerate(stats.episodes):
         print(
-            f"episode {episode + 1:>2}: return={total:8.3f}  steps={steps:>3}  "
-            f"final_dist={info['distance']:.4f}  success={info['is_success']}"
+            f"episode {i + 1:>2}: return={ep.total_return:8.3f}  steps={ep.steps:>3}  "
+            f"final_dist={ep.final_distance:.4f}  success={ep.success}"
         )
 
     env.close()
     print(
-        f"\n{args.policy}: mean_return={statistics.fmean(returns):.3f}  "
-        f"success_rate={successes / args.episodes:.2f}  ({successes}/{args.episodes})"
+        f"\n{args.policy}: mean_return={stats.mean_return:.3f}  "
+        f"success_rate={stats.success_rate:.2f}  "
+        f"({sum(1 for ep in stats.episodes if ep.success)}/{len(stats.episodes)})"
     )
     return 0
 

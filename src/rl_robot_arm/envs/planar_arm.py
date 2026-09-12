@@ -46,6 +46,7 @@ class PlanarArmReachEnv(gym.Env):
         tolerance: float = 0.05,
         control_cost: float = 0.01,
         success_bonus: float = 1.0,
+        target_radius_range: tuple[float, float] = (0.2, 0.9),
         render_mode: str | None = None,
     ) -> None:
         super().__init__()
@@ -59,6 +60,12 @@ class PlanarArmReachEnv(gym.Env):
             raise ValueError("link lengths must be positive")
         if render_mode is not None and render_mode not in self.metadata["render_modes"]:
             raise ValueError(f"unsupported render_mode {render_mode!r}")
+        low, high = target_radius_range
+        if not (0.0 <= low < high <= 1.0):
+            raise ValueError(
+                "target_radius_range must satisfy 0 <= low < high <= 1, "
+                f"got {target_radius_range}"
+            )
 
         self.n_links = n_links
         self.link_lengths = np.asarray(link_lengths, dtype=np.float64)
@@ -68,6 +75,7 @@ class PlanarArmReachEnv(gym.Env):
         self.tolerance = float(tolerance)
         self.control_cost = float(control_cost)
         self.success_bonus = float(success_bonus)
+        self.target_radius_range = (float(low), float(high))
         self.render_mode = render_mode
 
         self.action_space = spaces.Box(-1.0, 1.0, shape=(n_links,), dtype=np.float32)
@@ -96,7 +104,8 @@ class PlanarArmReachEnv(gym.Env):
         return self.forward_kinematics()[-1]
 
     def _sample_reachable_target(self) -> np.ndarray:
-        radius = self.np_random.uniform(0.2 * self.reach, 0.9 * self.reach)
+        low, high = self.target_radius_range
+        radius = self.np_random.uniform(low * self.reach, high * self.reach)
         angle = self.np_random.uniform(-np.pi, np.pi)
         return np.array([radius * np.cos(angle), radius * np.sin(angle)])
 
